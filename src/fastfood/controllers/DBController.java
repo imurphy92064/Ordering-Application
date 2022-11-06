@@ -57,7 +57,7 @@ public class DBController {
     Description: This method send a query to backend DB to get the current
         up-to-date menu to send to the front end UI
     Parameters: None
-    Local Variables:
+    Local Variables
         curMenu - The list that will contain the menu items from the DB.
         rs - The result set object that contains the output from the query.
     Returns: A Vector<Item> object that has all the items in the menu.
