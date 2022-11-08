@@ -4,13 +4,13 @@ import fastfood.item.SelectedItem;
 import fastfood.order.OrderInProgress;
 
 public class OrderController {
-    private OrderInProgress order;
+    private static OrderInProgress order;
 
     //Constructor
-    public OrderController(String Cust){this.order = new OrderInProgress(Cust);}
+    public OrderController(String Cust){order = new OrderInProgress(Cust);}
 
    //Getter
-    public OrderInProgress getOrder() {return this.order;}
+    public OrderInProgress getOrder() {return order;}
 
     /*
     Description:
@@ -20,10 +20,10 @@ public class OrderController {
      */
     public void modifyOrder(boolean op, SelectedItem item) {
         if(op){
-            this.order.addItem(item);
+            order.addItem(item);
         }
         else{
-            this.order.removeItem(item);
+            order.removeItem(item);
         }
     }
     /*

@@ -5,12 +5,18 @@ import fastfood.item.SelectedItem;
 import java.util.Vector;
 
 public class Receipt extends Order {
-    private int orderNum;
-    private String timestamp;
+    private final int  orderNum;
+    private final String timestamp;
 
     //Constructors
-    public Receipt(int orderNo, String ts, String custName) {
+    public Receipt(int orderNo, String custName,String ts) {
         super(custName);
+        this.orderNum = orderNo;
+        this.timestamp = ts;
+    }
+
+    public Receipt(int orderNo, String custName, Vector<SelectedItem> list, double total,  String ts) {
+        super(custName, list, total);
         this.orderNum = orderNo;
         this.timestamp = ts;
     }

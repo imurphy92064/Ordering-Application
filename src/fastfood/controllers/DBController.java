@@ -4,21 +4,17 @@ package fastfood.controllers;
 import fastfood.item.MenuItem;
 import fastfood.item.SelectedItem;
 import fastfood.order.OrderInProgress;
-import fastfood.order.Receipt;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
 /*
 DB Table Structure Reference
 
-Employee(EmpID, Title, Job, HourlyPay, DateStarted)
 Contains(OrderNum, ItemID, Quantity)
 MenuItem(ItemID, Description, Price, Calories)
-Order(OrderNum, CustomerName, Date)
+Order(OrderNum, CustomerName, Total, Timestamp)
 
 Table(1, 2, 3, ...) The Column Index Sequence
  */
@@ -26,13 +22,21 @@ Table(1, 2, 3, ...) The Column Index Sequence
 
 /*
 TODO:
-    1. Change all statement objects to preparedStatement objects and make querys and execute statements that way.
-    2. Determine how we want to check whether or not an OrderInProgress obj is completed or not before creating a
+    1. Determine how we want to check whether or not an OrderInProgress obj is completed or not before creating a
         receipt object & inserting it into the DB.
  */
 
+/*
+11/8/2022 Changes:
+    1. Changed the statement objects to prepared statement objects.
+    2. Changed and updates sql statements in,
+        - getReceiptInfo()
+        - insertReceipt()
+        - insertReceiptInfo()
+    3. Added a getMostRecentReceipt() method that returns the most recent receipt entry.
+ */
+
 public class DBController {
-    private int orderIDGen = 100;
     //Properties
     private Connection con;
 
@@ -64,11 +68,11 @@ public class DBController {
      */
     public Vector<MenuItem> getMenuItems(){
         Vector<MenuItem> curMenu = new Vector<>(10, 5);
-        Statement statement;
+        PreparedStatement statement;
         try{
             //Create the statement and send the query to the backend DB
-            statement = con.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT * FROM menuitems");
+            statement = con.prepareStatement("SELECT * FROM `menuitems`");
+            ResultSet rs = statement.executeQuery();
 
             //Populating the vector to return to the frontend UI
             while(rs.next()){
@@ -81,22 +85,6 @@ public class DBController {
     }
 
     /*
-    Description: This is a helper function that gets the current date and time from the local time zone.
-    Parameters: None
-    Local Variables:
-        dtf - The formatter for the date and time
-        now - The current local time right now.
-    Returns: A string representation of the current date and time.
-     */
-    private @NotNull String getDateTime(){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        return dtf.format(now);
-    }
-
-    private int increment(){return orderIDGen++;}
-
-    /*
     Description: This method will insert a receipt into the backend DB when the order is completed.
         Otherwise, an exception was thrown.
     Parameters:
@@ -107,39 +95,39 @@ public class DBController {
         newReceipt - The receipt object that we use to insert into the DB.
     Returns: Returns a boolean dependent on if the method inserted successfully.
      */
-    public boolean insertReceipt(OrderInProgress order, int... empId)throws Exception {
+    public boolean insertReceipt(@NotNull OrderInProgress order) {
         boolean successful = true;
-        Statement statement;
+        PreparedStatement statement;
         /*
         ToDo:
            This checks if the Order has been paid for. If not it will return the control back to front end
         */
-
-        //use this new receipt to make prepared statements.
-        Receipt newReceipt = new Receipt(increment(), getDateTime(), order);//New Receipt created from the complete OrderInProgress Obj.
-
         try{
-            String query;
+            statement = con.prepareStatement("INSERT INTO `receipts` (`OrderNum`,`CustomerName`, `Total`, `Timestamp`) VALUES (NULL, ?, ?, current_timestamp())");
+            statement.setString(1, order.getCustName());
+            statement.setDouble(2, order.getTotal());
+            statement.executeUpdate();
 
-            if(empId.length == 0){
-                query = "INSERT INTO `receipts` (`OrderNumber`, `EmpID`, `CustomerName`, `Date`, `Total`) VALUES (NULL, NULL, `"+order.getCustName()+"`, NULL)";
-                statement = con.createStatement();
-                statement.executeUpdate(query);
-            }
-            else{
-                query = "INSERT INTO `receipts` (`OrderNumber`, `EmpID`, `CustomerName`, `Date`) VALUES (NULL, `"+empId[0]+"`, `"+order.getCustName()+"`, NULL)";
-                statement = con.createStatement();
-                statement.executeUpdate(query);
-            }
 
-            insertReceiptInfo(newReceipt.getOrderNum(), newReceipt.getItemList());
+            //Get the most recently created receipt. (Use the max(emp_id) in a query).
+            int receiptNum = getMostRecentReceipt();
+            //Check to see if we got a good receiptNum.
+            if(receiptNum == -1){
+                System.out.println("Something Bad happened.\ngetMostReceipt returned a -1.");
+                return false;
+            }
+            //Start the item list
+            successful = insertReceiptInfo(receiptNum, order.getItemList());
 
         }catch(SQLException ex){
             System.out.println(ex.getMessage());
             successful = false;
         }
-        catch(Exception e){
-            System.out.println(e.getMessage());
+
+        if(successful){
+            System.out.println("Successful Receipt Insertion.");
+        }else{
+            System.out.println("Unsuccessful Receipt Insertion.");
         }
 
         return successful;
@@ -157,20 +145,28 @@ public class DBController {
      */
     private boolean insertReceiptInfo(int orderID, Vector<SelectedItem> selectedItems){
         boolean successful = true;
-        Statement statement;
+        PreparedStatement statement;
 
         try{
             String query;
-            statement = con.createStatement();
+            statement = con.prepareStatement("INSERT INTO `receipt_info` (`OrderNum`, `ItemID`, `Quantity`) VALUES (?, ?, ?)");
+            statement.setInt(1, orderID);
             for(SelectedItem item : selectedItems){
-                query = "INSERT INTO `receipt_info` (`OrderNumber`, `ItemID`, `Quantity`) VALUES (`"+orderID+"`, `"+item.getItemID()+"`, `"+item.getQuantity()+"`)";
-                statement.executeUpdate(query);
+                statement.setInt(2, item.getItemID());
+                statement.setInt(3, item.getQuantity());
+                statement.executeUpdate();
             }
         }catch(SQLException ex){
             System.out.println(ex.getMessage());
             successful = false;
         }catch(Exception e){
             System.out.println(e.getMessage());
+        }
+
+        if(successful){
+            System.out.println("Successful Receipt_Info Insertion.");
+        }else{
+            System.out.println("Unsuccessful Receipt_Info Insertion.");
         }
 
         return successful;
@@ -189,23 +185,78 @@ public class DBController {
      */
     public Vector<String> getReceiptInfo(int orderNum){
         Vector<String> list = new Vector<>();
-        Statement statement;
+        PreparedStatement statement;
 
         try{
-            statement = con.createStatement();
-            ResultSet rs = statement.executeQuery("SELECT `ItemID`, `Quantity` FROM receipt_info WHERE `OrderNumber`="+orderNum);
+            statement = con.prepareStatement("SELECT `receipt_info`.`ItemID`, `menuitems`.`ItemName`, `receipt_info`.`Quantity` FROM `receipt_info`, `menuitems` WHERE `receipt_info`.`ItemID` = `menuitems`.`ItemID` AND `receipt_info`.`OrderNum`= ?");
+            statement.setInt(1, orderNum);
+            ResultSet rs = statement.executeQuery();
 
             while(rs.next()){
-                String temp = rs.getString(1)+","+rs.getString(2);
+                String temp = rs.getString(1)+","+rs.getString(2)+","+rs.getString(3);
                 list.add(temp);
             }
         }catch(SQLException ex){
             System.out.println(ex.getMessage());
-        }catch(Exception e){
-            System.out.println(e.getMessage());
         }
 
         return list;
+    }
+
+    /*
+    Description: This method returns the total of the receipt number passed as a parameter.
+    Parameters:
+        orderNum - This is the order number associated with the receipt entry in the DB
+    Local Variables:
+        total - The total amount of the order on the receipt
+        statement - The preparedStatement that we use to pre-compile the sql statement.
+        rs - The result from the query just executed.
+    Returns: A double representing the total amount of the order on the receipt.
+     */
+    private double getReceiptTotal(int orderNum){
+        double total = -1;
+        PreparedStatement statement;
+
+        try{
+            statement = con.prepareStatement("SELECT `Total` FROM `receipts` WHERE `OrderNum` = ?");
+            statement.setInt(1, orderNum);
+            ResultSet rs = statement.executeQuery();
+
+            if(!rs.next()){return total;}
+
+            total = rs.getDouble(1);
+        }catch(SQLException ex){System.out.println(ex.getMessage());}
+        return total;
+    }
+
+    /*
+    Description: This method queries the database for the most recently created entry in the receipts table.
+        Since we are using Auto_Increment the most recently create receipt is the one with the highest number.
+    Parameters: None.
+    Local Variables:
+        receiptNum - The variable where we store the result from the query.
+        statement - The preparedStatement that we use to pre-compile the sql statement.
+        rs - The result from the query just executed.
+    Returns: An integer that represents the receipt number of the most recently created receipt entry.
+     */
+    private int getMostRecentReceipt(){
+        int receiptNum = -1;
+        PreparedStatement statement;
+        ResultSet rs;
+
+        try{
+            statement = con.prepareStatement("SELECT MAX(`OrderNum`) FROM `receipts`");
+            rs = statement.executeQuery();
+
+            if(!rs.next()){return receiptNum;}//if there are no rows in the result we return with a -1.
+
+            receiptNum = rs.getInt(1);
+        }
+        catch(SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+
+        return receiptNum;
     }
 
 
@@ -226,69 +277,34 @@ public class DBController {
 
 
 
+    //public static void main(String args[]){
 
-
-//    public static void main(String args[]){
-//        OrderInProgress orderIP1 = new OrderInProgress("Ian Murphy");
-//        orderIP1.addItem(new SelectedItem(1, "Hamburger", 5.50, 2, 128));
-//        orderIP1.addItem(new SelectedItem(2, "CheeseBurger", 6.00, 1, 152));
-//        orderIP1.addItem(new SelectedItem(3, "Chicken Nuggets", 5.25, 3, 140));
+//This demos the Insertion of a receipt entry.
+//    DBController dbc = new DBController();
 //
-//        System.out.println("\nCustomer Name: "+orderIP1.getCustName()+"\nTotal: "+orderIP1.getTotal()+"\n");
+//    Vector<MenuItem> menuItems = dbc.getMenuItems();
+//    OrderInProgress orderIP1 = new OrderInProgress("Ian Murphy");
+//    orderIP1.addItem(new SelectedItem(menuItems.get(7).getItemID(), menuItems.get(7).getItemName(), menuItems.get(7).getDescription(), menuItems.get(7).getPrice(), 2, menuItems.get(7).getCalories()));
+//    orderIP1.addItem(new SelectedItem(menuItems.get(5).getItemID(), menuItems.get(5).getItemName(), menuItems.get(5).getDescription(), menuItems.get(5).getPrice(), 1, menuItems.get(5).getCalories()));
+//    orderIP1.addItem(new SelectedItem(menuItems.get(3).getItemID(), menuItems.get(3).getItemName(), menuItems.get(3).getDescription(), menuItems.get(3).getPrice(), 4, menuItems.get(3).getCalories()));
 //
-//        Receipt receipt1 = new Receipt(100, getDateTime(), orderIP1);
-//
-//        System.out.println("Order Number: "+receipt1.getOrderNum()+
-//                            "\nCustomer Name: "+receipt1.getCustName()+
-//                            "\nTotal: "+receipt1.getTotal()+
-//                            "\nOrder Take On: "+receipt1.getDate()+"\n\nOrder List:\n");
-//
-//        for(SelectedItem item: receipt1.getItemList()){
-//            System.out.println("Item ID: "+item.getItemID()+
-//                    "\nDescription: "+item.getDescription()+
-//                    "\nPrice: "+item.getPrice()+
-//                    "\nCalories: "+item.getCalories()+"\n");
-//        }
-//        System.out.println("End.");
-//
-//
-//
-//
-//
-//
-//        try{
-//            //Registering the Driver for the connection.
-//            Class.forName("com.mysql.jdbc.Driver");//Make sure to download the mysql.connector-java.jar AND add it to the project dependencies for this driver to work.-> https://dbschema.com/jdbc-driver/MySql.html
-//
-//            //Making the connection to the database
-//            Connection con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/fastfood", "root", "");//If pulled from remote repo, make sure the DB URL matches your local environment!!
-//            //Here fastfood is the database, root is the user, and "" is the password
-//
-//            if(!con.isValid(0)){
-//                System.out.println("Database Connection failed.\n");
-//            }else{
-//                System.out.println("Database Connection successful.\n");
-//            }
-//
-//            Statement statement = con.createStatement();
-//
-//            ResultSet rs = statement.executeQuery("SELECT * FROM menu");
-//
-//            //For each row print the columns
-//            while(rs.next()){
-//                System.out.println("ItemID: "+rs.getInt(1)+"\nName: "+rs.getString(2)+"\nDescription: "+rs.getString(3)+"\nPrice: "+rs.getDouble(4)+"\nCalories: "+rs.getInt(5)+"\n");
-//            }
-//
-//            //Statement below Inserted into the table menu and the make another query so that we can show the newly added McDouble item
-//            statement.executeUpdate("INSERT INTO `menu` (`ItemID`, `Name`, `Description`, `Price`, `Calories`) VALUES ('730283105', 'McDouble', 'Good McDouble, Yum!', '4.99', '290')");
-//
-//            rs = statement.executeQuery("SELECT * FROM menu");
-//
-//            while(rs.next()){
-//                System.out.println("ItemID: "+rs.getInt(1)+"\nName: "+rs.getString(2)+"\nDescription: "+rs.getString(3)+"\nPrice: "+rs.getDouble(4)+"\nCalories: "+rs.getInt(5)+"\n");
-//            }
-//            con.close();
-//
-//        }catch(Exception e){System.out.println(e.getMessage());}
+//    for(SelectedItem item: orderIP1.getItemList()){
+//        System.out.println(item.getItemName());
 //    }
+//
+//    dbc.insertReceipt(orderIP1);
+
+
+
+//This demos the retrieval of items from a receipt. Displaying its ID, Name, & Quantity bought.
+//    DBController dbc = new DBController();
+//    for(String entry: dbc.getReceiptInfo(12)){
+//        String[] t = entry.split(",");
+//        System.out.println("ID: "+t[0]+
+//                            "\nName: "+t[1]+
+//                            "\nQuantity: "+t[2]);
+//    }
+//    System.out.println("\nGrand Total: $"+dbc.getMostRecentReceipt());
+
+    //}
 }
