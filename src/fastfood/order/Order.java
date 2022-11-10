@@ -10,6 +10,11 @@ abstract class Order {
     protected double total;
     protected String customerName;
 
+    protected Order(String customerName, Vector<SelectedItem> itemList, double total) {
+        this.itemList = itemList;
+        this.total = total;
+        this.customerName = customerName;
+    }
     protected Order(String customerName) {
         this.itemList = new Vector<>();
         this.total = 0.0;
