@@ -10,6 +10,7 @@ abstract class Order {
     protected double total;
     protected String customerName;
 
+    //Constructors
     protected Order(String customerName, Vector<SelectedItem> itemList, double total) {
         this.itemList = itemList;
         this.total = total;
@@ -21,6 +22,7 @@ abstract class Order {
         this.customerName = customerName;
     }
 
+    //Getters and Setters
     public Vector<SelectedItem> getItemList(){return this.itemList;}
     protected void setItemList(Vector<SelectedItem> list){this.itemList = list;}
     public double getTotal(){return this.total;}
