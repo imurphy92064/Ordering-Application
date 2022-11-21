@@ -10,23 +10,6 @@ import java.sql.*;
 import java.util.Vector;
 
 /*
-DB Table Structure Reference
-
-Contains(OrderNum, ItemID, Quantity)
-MenuItem(ItemID, Description, Price, Calories)
-Order(OrderNum, CustomerName, Total, Timestamp)
-
-Table(1, 2, 3, ...) The Column Index Sequence
- */
-
-
-/*
-TODO:
-    1. Determine how we want to check whether or not an OrderInProgress obj is completed or not before creating a
-        receipt object & inserting it into the DB.
- */
-
-/*
 11/8/2022 Changes:
     1. Changed the statement objects to prepared statement objects.
     2. Changed and updates sql statements in,
@@ -34,6 +17,9 @@ TODO:
         - insertReceipt()
         - insertReceiptInfo()
     3. Added a getMostRecentReceipt() method that returns the most recent receipt entry.
+11/11/2022 Changes:
+    1. Added two more boolean value to the insertReceipt() method to store the outcome of the insertReceiptInfo() method
+        so that better debugging output can be given. The other boolean value added is to determine if both operations are successful.
  */
 
 public class DBController {
@@ -43,7 +29,7 @@ public class DBController {
     /*
     Parameters: None
     Description: Class constructor
-    Returns: Nothing
+    Returns: An instance of this class.
      */
     public DBController(){
         try{
@@ -91,17 +77,22 @@ public class DBController {
         order - The Order object that the customer or employee has made.
         empId - If an employee made the order it will have their empId associated with it.
     Local Variables:
-        successful - Hold the value of the outcome of the method.
+        fullSuccess - Is the boolean value when you 'AND' the 'receiptInsertSuccess' && 'receiptInfoInsertSuccess'
+        receiptInsertSuccess - Hold the value of the outcome of the insertReceipt() method.
+        receiptInfoInsertSuccess - Hold the value of the outcome of the insertReceiptInfo() method.
         newReceipt - The receipt object that we use to insert into the DB.
     Returns: Returns a boolean dependent on if the method inserted successfully.
      */
     public boolean insertReceipt(@NotNull OrderInProgress order) {
-        boolean successful = true;
+        boolean fullSuccess = false;
+        boolean receiptInsertSuccess = true;
+        boolean receiptInfoInsertSuccess = true;
         PreparedStatement statement;
-        /*
-        ToDo:
-           This checks if the Order has been paid for. If not it will return the control back to front end
-        */
+
+        if(!order.isCompleted()){//If the order is not completed for some reason when reaching this point. We return false
+            return fullSuccess;
+        }
+
         try{
             statement = con.prepareStatement("INSERT INTO `receipts` (`OrderNum`,`CustomerName`, `Total`, `Timestamp`) VALUES (NULL, ?, ?, current_timestamp())");
             statement.setString(1, order.getCustName());
@@ -117,20 +108,21 @@ public class DBController {
                 return false;
             }
             //Start the item list
-            successful = insertReceiptInfo(receiptNum, order.getItemList());
+            receiptInfoInsertSuccess = insertReceiptInfo(receiptNum, order.getItemList());
 
         }catch(SQLException ex){
             System.out.println(ex.getMessage());
-            successful = false;
+            receiptInsertSuccess = false;
         }
 
-        if(successful){
-            System.out.println("Successful Receipt Insertion.");
+        if(receiptInsertSuccess && receiptInfoInsertSuccess){
+            System.out.println("Successful Receipt/Receipt_Info Insertion.");
+            fullSuccess = true;
         }else{
-            System.out.println("Unsuccessful Receipt Insertion.");
+            System.out.println("Unsuccessful Receipt insertion or Receipt_Info insertion.");
         }
 
-        return successful;
+        return fullSuccess;
     }
 
     /*
@@ -140,11 +132,11 @@ public class DBController {
         orderID - The ID of the order the orderItems list belongs to.
         selectedItems - A list of items that have been ordered, these objects have a quantity associated with them.
     Local Variables:
-        successful - Hold the value of the outcome of the method.
+        receiptInfoInsertSuccess - Hold the value of the outcome of the method.
     Returns: A boolean dependent on if the insertions were successful.
      */
     private boolean insertReceiptInfo(int orderID, Vector<SelectedItem> selectedItems){
-        boolean successful = true;
+        boolean receiptInfoInsertSuccess = true;
         PreparedStatement statement;
 
         try{
@@ -158,18 +150,18 @@ public class DBController {
             }
         }catch(SQLException ex){
             System.out.println(ex.getMessage());
-            successful = false;
+            receiptInfoInsertSuccess = false;
         }catch(Exception e){
             System.out.println(e.getMessage());
         }
 
-        if(successful){
+        if(receiptInfoInsertSuccess){
             System.out.println("Successful Receipt_Info Insertion.");
         }else{
             System.out.println("Unsuccessful Receipt_Info Insertion.");
         }
 
-        return successful;
+        return receiptInfoInsertSuccess;
     }
 
     /*
@@ -261,22 +253,7 @@ public class DBController {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//Main function to test the class.
     //public static void main(String args[]){
 
 //This demos the Insertion of a receipt entry.

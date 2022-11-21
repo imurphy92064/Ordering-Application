@@ -4,10 +4,23 @@ package fastfood.order;
 import fastfood.item.SelectedItem;
 
 public class OrderInProgress extends Order {
-
+    boolean completed;
     //Constructor
-    public OrderInProgress(String custName) {super(custName);}
+    public OrderInProgress(String custName) {
+        super(custName);
+        this.completed = false;
+    }
 
+    //Getter and Setter
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    //Methods
     /*
     Description: This function will add an item to the list if its not already in there. If the item is already in the
         list then we update the quantity of the item in the list and recalculate the total.
