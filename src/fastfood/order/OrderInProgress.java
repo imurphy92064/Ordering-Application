@@ -1,6 +1,8 @@
+//<<<<<<< HEAD:src/src/fastfood/order/OrderInProgress.java
 package fastfood.order;
 
 
+import fastfood.item.MenuItem;
 import fastfood.item.SelectedItem;
 
 public class OrderInProgress extends Order {
@@ -31,20 +33,23 @@ public class OrderInProgress extends Order {
         temp - Is a temp object that we used to get the item reference that is in the list.
     Returns: Returns a boolean value that indicates if the insertion was successful.
      */
-    public boolean addItem(SelectedItem item){
-        boolean success;
-        if(this.itemList.contains(item)){
-            System.out.println("Item is already in the order list.");
-
-            SelectedItem temp = this.itemList.get(this.itemList.indexOf(item));//Get the item in the list that matches the parameter & save it in temp.
-            int updatedQuantity = item.getQuantity() + temp.getQuantity();//ReCalculate the quantity of the item in the list.
-            temp.setQuantity(updatedQuantity);//update the value.
-            success = true;
-            reCalculateTotal(true, temp.getPrice(), item.getQuantity());//Recalculate the total with the quantity from the parameter and the price of the item.
-        }
-        else{
-            success = this.itemList.add(item);
-            reCalculateTotal(true, item.getPrice(), item.getQuantity());//Recalculate the total with the quantity from the parameter and the price of the item.
+    public boolean addItem(MenuItem Mitem){
+        boolean success = false;
+        for(int i=0; i < this.itemList.size(); i++)
+   	    {
+            SelectedItem item = this.itemList.get(i);
+	        if(this.itemList.get(i).getItemName().equals(Mitem.getItemName())){
+	            System.out.println("Item is already in the order list.");
+	            int updatedQuantity = item.getQuantity() + 1;//ReCalculate the quantity of the item in the list.
+	            item.setQuantity(updatedQuantity);//update the value.
+	            success = true;
+	            reCalculateTotal(true, item.getPrice(), 1);//Recalculate the total with the quantity from the parameter and the price of the item.
+	        }
+   	    }
+        if(success == false)
+        {
+        	 success = this.itemList.add(new SelectedItem(Mitem.getItemID(), Mitem.getItemName(), Mitem.getDescription(), Mitem.getPrice(), 1, Mitem.getCalories()));
+	         reCalculateTotal(true, Mitem.getPrice(), 1);//Recalculate the total with the quantity from the parameter and the price of the item.
         }
         return success;
     }
@@ -64,17 +69,15 @@ public class OrderInProgress extends Order {
     public boolean removeItem(SelectedItem item){
         boolean success;
         if(this.itemList.contains(item)){
-            SelectedItem temp = this.itemList.get(this.itemList.indexOf(item));//Get the item in the list that matches the parameter & save it in temp.
-            int updatedQuantity = temp.getQuantity() - item.getQuantity();//ReCalculate the quantity of the item in the list.
-
+            int updatedQuantity =  item.getQuantity() - 1;//ReCalculate the quantity of the item in the list.
+            
+            reCalculateTotal(false, item.getPrice(), 1);//Recalculate the total with the quantity from the parameter and the price of the item.
             if(updatedQuantity <= 0){//If the quantity goes to 0 or below then we get rid of the item from the list
                 success = (this.itemList.remove(this.itemList.indexOf(item)) != null);
-                reCalculateTotal(false, temp.getPrice(), 0);//Recalculate the total with the quantity from the parameter and the price of the item.
             }
             else {
-                temp.setQuantity(updatedQuantity);//update the value.
+                item.setQuantity(updatedQuantity);//update the value.
                 success = true;
-                reCalculateTotal(false, temp.getPrice(), item.getQuantity());//Recalculate the total with the quantity from the parameter and the price of the item.
             }
         }
         else{
@@ -100,8 +103,8 @@ public class OrderInProgress extends Order {
             double subTotal = price*quantity;
             double curTotal = getTotal();
 
-            subTotal += curTotal;
-            setTotal(subTotal);
+            curTotal += subTotal;
+            setTotal(curTotal);
         }
         else{//If op is false we subtract
             double subTotal = price*quantity;
@@ -110,6 +113,5 @@ public class OrderInProgress extends Order {
             curTotal -= subTotal;
             setTotal(curTotal);
         }
-
     }
 }

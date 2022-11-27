@@ -1,7 +1,16 @@
 package fastfood.controllers;
 
+import fastfood.item.MenuItem;
 import fastfood.item.SelectedItem;
 import fastfood.order.OrderInProgress;
+import fastfood.controllers.DBController;
+/*
+11/11/2022 Changes:
+    1. Implemented the modifyOrder() and finalizeOrder() methods
+    2. I defined how to complete the order (Since we arent implementing payment gateways we just
+        change a boolean value('completed') to true)
+    3. Connected the OrderController and the DBController classes to initiate the insertion of a finalized order as a receipt.
+ */
 
 /*
 11/11/2022 Changes:
@@ -35,12 +44,12 @@ public class OrderController {
     Local Variables: None.
     Returns: Nothing.
      */
-    public void modifyOrder(boolean op, SelectedItem item) {
+    public void modifyOrder(boolean op, MenuItem Mitem, SelectedItem Sitem) {
         if(op){
-            order.addItem(item);
+            order.addItem(Mitem);
         }
         else{
-            order.removeItem(item);
+            order.removeItem(Sitem);
         }
     }
     /*

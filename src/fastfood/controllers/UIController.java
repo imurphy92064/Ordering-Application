@@ -1,6 +1,8 @@
 package fastfood.controllers;
 
 import fastfood.item.MenuItem;
+import fastfood.item.SelectedItem;
+import fastfood.order.OrderInProgress;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,24 +17,22 @@ import java.util.Vector;
 public class UIController extends JFrame {
 
     private JPanel contentPane;
-    private final JLabel lblNewLabel = new JLabel("Food Menu:");
-    private JTable table;
 
     /**
      * Launch the application.
      */
-//    public static void main(String[] args) {
-//        EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                try {
-//                    UIController frame = new UIController();
-//                    frame.setVisible(true);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//    }
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    UIController frame = new UIController();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     /**
      * Create the frame.
@@ -45,212 +45,146 @@ public class UIController extends JFrame {
 
         setContentPane(contentPane);
         contentPane.setLayout(null);
-        lblNewLabel.setBounds(232, 51, 71, 14);
-        contentPane.add(lblNewLabel);
+        
 
         JPanel panel = new JPanel();
-        panel.setBounds(167, 92, 213, 89);
+        panel.setBounds(167, 92, 500, 89);
         contentPane.add(panel);
 
         DBController db = new DBController();
         Vector<MenuItem> items = db.getMenuItems();
-        Vector<String> itemNames = new Vector<>();
+        /*Vector<String> itemNames = new Vector<>();
         Vector<String> prices = new Vector<>();
-        processMenuItems(items, itemNames, prices);
-
-
-        JList itemList = new JList();
-        itemList.setModel(new AbstractListModel() {
-            Vector<String> values = itemNames;
-            public int getSize() {
-                return values.size();
-            }
-            public Object getElementAt(int index) {return values.get(index);}
-        });
-
-        itemList.setSelectionModel(new DefaultListSelectionModel() {
-            public void setSelectionInterval(int index0, int index1) {
-                if (isSelectedIndex(index0))
-                    super.removeSelectionInterval(index0, index1);
-                else
-                    super.addSelectionInterval(index0, index1);
-            }
-        });
-
-        //list.getSelectionModel().addSelectionInterval(0, ABORT);
-        panel.add(itemList);
-
-        JList priceList = new JList();
-        priceList.setEnabled(false);
-        priceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        priceList.setModel(new AbstractListModel() {
-            Vector<String> values = prices;
-            public int getSize() {
-                return values.size();
-            }
-            public Object getElementAt(int index) {return values.get(index);}
-        });
-        panel.add(priceList);
-
-        JList quantityList = new JList();
-        quantityList.setEnabled(false);
-        quantityList.setModel(new AbstractListModel() {
-            String[] values = new String[] {"x0", "x0", "x0", "x0"};
-            public int getSize() {
-                return values.length;
-            }
-            public Object getElementAt(int index) {
-                return values[index];
-            }
-        });
-        quantityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        panel.add(quantityList);
-
-        JList plusList = new JList();
-        plusList.setModel(new AbstractListModel() {
-            String[] values = new String[] {"+", "+", "+", "+"};
-            public int getSize() {
-                return values.length;
-            }
-            public Object getElementAt(int index) {
-                return values[index];
-            }
-        });
-        plusList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        panel.add(plusList);
-
-        JList minusList = new JList();
-        minusList.setFont(new Font("Times New Roman", Font.PLAIN, 13));
-        minusList.setModel(new AbstractListModel() {
-            String[] values = new String[] {"-", "-", "-", "-"};
-            public int getSize() {
-                return values.length;
-            }
-            public Object getElementAt(int index) {
-                return values[index];
-            }
-        });
-        minusList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        panel.add(minusList);
-
-        plusList.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                if(e.getValueIsAdjusting()){
-                    int index = plusList.getSelectedIndex();
-                    plusList.removeSelectionInterval(index, index);
-
-                    String[] newValues = new String[quantityList.getModel().getSize()];
-
-                    for(int i = 0; i< quantityList.getModel().getSize(); i++)
-                    {
-                        if(i != index)
-                            newValues[i] = quantityList.getModel().getElementAt(i).toString();
-                        else
-                        {
-                            String str = quantityList.getModel().getElementAt(i).toString();
-                            int num = Integer.parseInt(str.substring(1)) + 1;
-                            System.out.println(num);
-                            newValues[i] = "x"+ num;
-                        }
-                    }
-                    quantityList.setModel(new AbstractListModel() {
-
-                        String[] values = newValues;
-                        public int getSize() {
-                            return values.length;
-                        }
-                        public Object getElementAt(int index) {
-                            return values[index];
-                        }
-                    });
-                }
-            }
-        });
-
-        minusList.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                int index = minusList.getSelectedIndex();
-                minusList.removeSelectionInterval(index, index);
-
-                if(e.getValueIsAdjusting() && index != -1 && !quantityList.getModel().getElementAt(index).toString().equals("x0")){
-
-                    String[] newValues = new String[quantityList.getModel().getSize()];
-
-                    for(int i = 0; i< quantityList.getModel().getSize(); i++)
-                    {
-                        if(i != index)
-                            newValues[i] = quantityList.getModel().getElementAt(i).toString();
-                        else
-                        {
-                            String str = quantityList.getModel().getElementAt(i).toString();
-                            int num = Integer.parseInt(str.substring(1)) - 1;
-                            System.out.println(num);
-                            newValues[i] = "x"+ num;
-                        }
-                    }
-                    quantityList.setModel(new AbstractListModel() {
-
-                        String[] values = newValues;
-                        public int getSize() {
-                            return values.length;
-                        }
-                        public Object getElementAt(int index) {
-                            return values[index];
-                        }
-                    });
-                }
-            }
-        });
-
-        JLabel lblYouSelected = new JLabel("You Selected: ");
-        lblYouSelected.setBounds(399, 67, 394, 33);
-
-        contentPane.add(lblYouSelected);
-
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.setBounds(10, 33, 99, 22);
-        contentPane.add(menuBar);
-
-        JMenu mnNewMenu = new JMenu("Hamburger");
-        menuBar.add(mnNewMenu);
-
-        JMenuItem mntmNewMenuItem = new JMenuItem("$5");
-        mntmNewMenuItem.setBounds(29, 123, 135, 27);
-        //contentPane.add(mntmNewMenuItem);
-
-        mnNewMenu.add(mntmNewMenuItem);
-
-        JTable table = new JTable(new DefaultTableModel(new Object[]{"0", "1", "2"}, 0));
+        processMenuItems(items, itemNames, prices); */
+        
+        //OrderInProgress order = new OrderInProgress("Jimmy");
+        
+        OrderController OC = new OrderController("Jimmy");
+        OrderInProgress order = OC.getOrder();
+        
+        //new stuff ---------------------------------------------------------------------
+        
+        //create checkout table
+        JTable table = new JTable(new DefaultTableModel(new Object[]{"0", "1", "2", "3"}, 0));
         table.setEnabled(false);
         DefaultTableModel Tmodel = (DefaultTableModel) table.getModel();
-        Tmodel.addRow(new Object[]{"Items", "Quantity", "Price"});
+        Tmodel.addRow(new Object[]{"Items", "Price", "Quantity", "Total"});
         table.setSize(260, 100);
         table.setLocation(24, 226);
         contentPane.add(table);
-
-        JButton btnNewButton = new JButton("Check Out");
-        btnNewButton.addActionListener(new ActionListener() {
+        
+        JLabel totalAmount = new JLabel();
+        totalAmount.setBounds(50,350, 148, 30);
+        totalAmount.setText("Total Amount: ");
+        contentPane.add(totalAmount);
+        
+        JButton checkOutButton = new JButton("Check Out");
+        
+        checkOutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Tmodel.setRowCount(1);
 
-                for(int x : itemList.getSelectedIndices())
+                for(SelectedItem i : order.getItemList())
                 {
-                    String I = itemList.getModel().getElementAt(x).toString();
-                    String Q = quantityList.getModel().getElementAt(x).toString();
-                    String P = "$" + String.valueOf(Integer.parseInt(Q.substring(1)) * Integer.parseInt(priceList.getModel().getElementAt(x).toString().substring(1)));
-                    Tmodel.addRow(new Object[]{I, Q, P});
+                    String I = i.getItemName(); 
+                    String Q = "x" + Integer.toString(i.getQuantity()); 
+                    String P = "$" +  Double.toString(i.getPrice());
+                    String T = "$" + Double.toString(i.getQuantity() * i.getPrice());
+                    Tmodel.addRow(new Object[]{I, P, Q, T});
                 }
+            
+                totalAmount.setText("Total Amount: $" + Double.toString(order.getTotal()));
             }
         });
-        btnNewButton.setBounds(175, 192, 174, 23);
-        contentPane.add(btnNewButton);
-
+        checkOutButton.setBounds(940, 250, 174, 23);
+        contentPane.add(checkOutButton); 
+        
+        
+        //create summary
+        JPanel sumGrid = new JPanel();
+	    sumGrid.setLayout(new GridLayout(0, 2, 10, 0));
+	    
+	    JScrollPane scrollSumPane = new JScrollPane(sumGrid);
+	    scrollSumPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+	    scrollSumPane.setLocation(750, 11);   
+	    scrollSumPane.setSize(520, 200);
+	    
+	    contentPane.add(scrollSumPane, BorderLayout.CENTER);
+	    
+	    //create menu
+        JPanel menuGrid =  new JPanel();
+	    menuGrid.setLayout(new GridLayout(0, 1, 0, 0));
+	    
+	    for (int i=0; i<items.size(); i++)
+	    {
+	    	 MenuItem item = items.get(i);
+	    	 JButton itemButton = new JButton( "<html><center>" + item.getItemName() + "<br/>" + "$" + item.getPrice() + "</center><html>");
+	    	 itemButton.setToolTipText(item.getDescription());
+	    	 // add event listener
+	 	      itemButton.addActionListener(new ActionListener() {
+	 	      @Override
+	 	      public void actionPerformed(ActionEvent e) {
+	 	    	  
+	 	    	  OC.modifyOrder(true, item, null);
+	 	    	  //order.addItem(item);
+	 	    	  
+	 	    	  //update summary when clicked
+	 	    	  updateSummary(sumGrid, order, OC);
+	 	      }
+	 	    });
+	    	 menuGrid.add(itemButton);
+	    	 
+	    }
+	 
+	    
+	    JScrollPane scrollMenuPane = new JScrollPane(menuGrid);
+	    scrollMenuPane.setLocation(331, 238);   
+	    scrollMenuPane.setSize(310, 200);
+	    
+	    contentPane.add(scrollMenuPane, BorderLayout.CENTER); 
     }
+    
+    //update summary function
+    public void updateSummary( JPanel sumGrid, OrderInProgress order, OrderController OC)
+    {
+	    sumGrid.removeAll();
+	  
+	    for (int i=0; i<order.getItemList().size(); i++)
+	    {
+	    	
+	    	 SelectedItem item = order.getItemList().get(i);
+	    	 
+	    	 JPanel namePanel = new JPanel();
+	    	 JLabel nameLabel = new JLabel( "  " + item.getItemName() + " x" + item.getQuantity());
+	    	 nameLabel.setToolTipText(nameLabel.getText());
+	    	 nameLabel.setPreferredSize(new Dimension(280,30));
 
-    private void processMenuItems(Vector<MenuItem> items, Vector<String> name, Vector<String> prices){
+	    	 namePanel.add(nameLabel);
+	    	 sumGrid.add(namePanel);
+	    	 
+	    	 JPanel buttonPanel = new JPanel();
+	    	 JButton minusButton = new JButton("-");
+	    	 minusButton.setPreferredSize(new Dimension(100,30));
+	    	 minusButton.addActionListener(new ActionListener() {
+		 	      @Override
+		 	      public void actionPerformed(ActionEvent e) { 
+		 	    	 OC.modifyOrder(false, null, item);
+		 	    	 //order.removeItem(item);
+		 	    	 updateSummary(sumGrid, order, OC); //update summary each time we remove an item
+		 	      } });
+	    	 buttonPanel.add(minusButton);
+	    	 sumGrid.add(buttonPanel);	 
+	    }
+	    
+	    
+	    sumGrid.revalidate();
+	    sumGrid.repaint();;	
+    }
+    
+    /*private void processMenuItems(Vector<MenuItem> items, Vector<String> name, Vector<String> prices){
         for(int i=0; i < items.size(); i++){
             name.add(items.get(i).getItemName());
             prices.add(String.valueOf(items.get(i).getPrice()));
         }
-    }
+    }*/
 }
