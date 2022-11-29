@@ -128,6 +128,7 @@ public class UIController extends JFrame {
          
          checkOutButton.addActionListener(new ActionListener() {
              public void actionPerformed(ActionEvent e) {
+                 order.setCompleted(true);//If the order isn't completed. The DBController rejects the insertion request.
                  menuPage.setVisible(false);
                  createCheckoutPage(order);
              }
