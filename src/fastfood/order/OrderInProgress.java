@@ -2,6 +2,7 @@
 package fastfood.order;
 
 
+import fastfood.item.ItemFactory;
 import fastfood.item.MenuItem;
 import fastfood.item.SelectedItem;
 
@@ -48,7 +49,7 @@ public class OrderInProgress extends Order {
    	    }
         if(success == false)
         {
-        	 success = this.itemList.add(new SelectedItem(Mitem.getItemID(), Mitem.getItemName(), Mitem.getDescription(), Mitem.getPrice(), 1, Mitem.getCalories()));
+        	 success = this.itemList.add((SelectedItem) ItemFactory.createItem("selected item", null, Mitem));
 	         reCalculateTotal(true, Mitem.getPrice(), 1);//Recalculate the total with the quantity from the parameter and the price of the item.
         }
         return success;

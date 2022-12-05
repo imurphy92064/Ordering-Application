@@ -11,5 +11,5 @@ public class SelectedItem extends Item {
 
     //Getter and Setter
     public int getQuantity(){return this.quantity;}
-    public void setQuantity(int newQuant){this.quantity = newQuant;}
+    public void setQuantity(int newQuantity){this.quantity = newQuantity;}
 }

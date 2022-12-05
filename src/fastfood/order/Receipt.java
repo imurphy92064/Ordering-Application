@@ -9,7 +9,7 @@ public class Receipt extends Order {
     private final String timestamp;
 
     //Constructors
-    public Receipt(int orderNo, String custName,String ts) {
+    public Receipt(int orderNo, String custName, String ts) {
         super(custName);
         this.orderNum = orderNo;
         this.timestamp = ts;
