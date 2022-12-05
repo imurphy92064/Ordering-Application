@@ -28,7 +28,8 @@ abstract class Order {
     public double getTotal(){return this.total;}
     public void setTotal(double newTotal){this.total = newTotal;}
     public String getCustName(){return this.customerName;}
-    private void setCustName(String updatedName){this.customerName = updatedName;}
+    public void setCustName(String updatedName){this.customerName = updatedName;}
+
 }
 
 

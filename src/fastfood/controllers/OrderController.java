@@ -2,37 +2,61 @@ package fastfood.controllers;
 
 import fastfood.item.MenuItem;
 import fastfood.item.SelectedItem;
+import fastfood.order.OrderFactory;
 import fastfood.order.OrderInProgress;
 import fastfood.controllers.DBController;
-/*
-11/11/2022 Changes:
-    1. Implemented the modifyOrder() and finalizeOrder() methods
-    2. I defined how to complete the order (Since we arent implementing payment gateways we just
-        change a boolean value('completed') to true)
-    3. Connected the OrderController and the DBController classes to initiate the insertion of a finalized order as a receipt.
- */
 
+import java.util.Vector;
 /*
 11/11/2022 Changes:
     1. Implemented the modifyOrder() and finalizeOrder() methods
     2. I defined how to complete the order (Since we arent implementing payment gateways we just
         change a boolean value('completed') to true)
     3. Connected the OrderController and the DBController classes to initiate the insertion of a finalized order as a receipt.
+
+12/04/2022 Changes:
+    1. Added function headers for newly created functions.
  */
 
 public class OrderController {
     private static OrderInProgress order;
     private DBController dbc;
 
-    //Constructor
-    public OrderController(String Cust){
-        order = new OrderInProgress(Cust);
-        dbc = new DBController();
+    /*
+    Description: This is a constructor for the OrderController.
+    Parameters:
+        db_ - This is the DB Controller object that connects to the DB and allows the app to send data to the DB.
+        Cust - This is the name of the customer for this order.
+    Local Variables: None.
+    Returns: An instance of this class.
+     */
+    public OrderController(String Cust, DBController dbc_){
+        order = (OrderInProgress) OrderFactory.createOrder("order in progress", null, null, Cust);
+        dbc = dbc_;
     }
 
-   //Getter
-    public OrderInProgress getOrder() {return order;}
+    /*
+    Description: This is a constructor for the OrderController. Sets the customer name to null.
+    Parameters:
+        db_ - This is the DB Controller object that connects to the DB and allows the app to send data to the DB.
+    Local Variables: None.
+    Returns: An instance of this class.
+     */
+    public OrderController(DBController dbc_){
+        order = (OrderInProgress) OrderFactory.createOrder("order in progress", null, null, null);
+        dbc = dbc_;
+    }
 
+    //Getter for order member variable.
+    public OrderInProgress getOrder() {return this.order;}
+
+    //Getter for the order's item list.
+    public Vector<SelectedItem> getOrderList(){
+        return order.getItemList();
+    }
+
+    //Getter for the order's current total.
+    public double  getOrderTotal() {return order.getTotal();}
 
     //Methods
     /*
@@ -44,12 +68,12 @@ public class OrderController {
     Local Variables: None.
     Returns: Nothing.
      */
-    public void modifyOrder(boolean op, MenuItem Mitem, SelectedItem Sitem) {
+    public void modifyOrder(boolean op, MenuItem mItem, SelectedItem sItem) {
         if(op){
-            order.addItem(Mitem);
+            order.addItem(mItem);
         }
         else{
-            order.removeItem(Sitem);
+            order.removeItem(sItem);
         }
     }
     /*

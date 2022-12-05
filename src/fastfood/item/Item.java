@@ -1,11 +1,11 @@
 package fastfood.item;
 
 abstract class Item {
+    protected int itemID;
     protected String itemName;
     protected String description;
     protected double price;
     protected int calories;
-    protected int itemID;
 
     protected Item(int itemID, String itemName, String description, double price, int calories) {
         this.itemID = itemID;
