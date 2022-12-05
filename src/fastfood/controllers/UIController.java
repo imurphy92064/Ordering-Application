@@ -47,40 +47,53 @@ public class UIController extends JFrame {
     	setExtendedState(JFrame.MAXIMIZED_BOTH); //max screen size
     	//create the start page
     	createStartPage();
+    	//createMenuPage(null);
     }
     
     
     //create start page function
     public void createStartPage()
-    {
+    {	
          startPage = new JPanel();
+         startPage.setBackground(new Color(255, 255, 255));
          startPage.setBorder(new EmptyBorder(5, 5, 5, 5));
 
          setContentPane(startPage);
          startPage.setLayout(null);
          
+         JLabel HamburgerIMG = new JLabel();
+    	 HamburgerIMG.setIcon(new ImageIcon("src\\foodtable.jpg"));
+         HamburgerIMG.setBounds(10, -110, 1000, 1000);
+         startPage.add(HamburgerIMG); 
+         
          JLabel appNameLabel = new JLabel("Restaurant Food Ordering App");
-         appNameLabel.setForeground(new Color(128, 0, 255));
-         appNameLabel.setFont(new Font("Times New Roman", Font.BOLD, 16));
-         appNameLabel.setBounds(520, 200, 400, 26);
+         appNameLabel.setBackground(new Color(0, 0, 255));
+         appNameLabel.setForeground(new Color(0, 0, 160));
+         appNameLabel.setFont(new Font("Engravers MT", Font.BOLD | Font.ITALIC, 30));
+         appNameLabel.setBounds(255, 24, 1150, 85);
          startPage.add(appNameLabel); 
          
          JLabel nameLabel = new JLabel("Name: ");
-         nameLabel.setBounds(520, 300, 174, 23);
+         nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 20));
+         nameLabel.setForeground(new Color(0, 0, 128));
+         nameLabel.setBounds(957, 224, 218, 65);
          startPage.add(nameLabel); 
          
          JTextField nameText = new JTextField();
-         nameText.setBounds(580, 300, 174, 23);
+         nameText.setFont(new Font("Tahoma", Font.PLAIN, 18));
+         nameText.setBounds(957, 300, 300, 37);
          startPage.add(nameText);
          
          JLabel errorLabel = new JLabel("Error: Pls Enter Name to Continue!");
          errorLabel.setForeground(new Color(255, 0, 0));
-         errorLabel.setBounds(520, 250, 300, 23);
+         errorLabel.setBounds(957, 350, 300, 23);
          startPage.add(errorLabel);
          errorLabel.setVisible(false);
          
          //order button
          JButton orderButton = new JButton("Order");
+         orderButton.setForeground(new Color(255, 255, 255));
+         orderButton.setBackground(new Color(0, 0, 128));
          
          orderButton.addActionListener(new ActionListener() {
              public void actionPerformed(ActionEvent e) {
@@ -95,11 +108,13 @@ public class UIController extends JFrame {
              		errorLabel.setVisible(true);
              }
          });
-         orderButton.setBounds(520, 400, 174, 23);
+         orderButton.setBounds(957, 400, 174, 23);
          startPage.add(orderButton);
          
          JLabel FFTechLabel = new JLabel("Created By FFTech");
-         FFTechLabel.setBounds(520, 500, 300, 23);
+         FFTechLabel.setFont(new Font("Tahoma", Font.PLAIN, 16));
+         FFTechLabel.setForeground(new Color(0, 0, 128));
+         FFTechLabel.setBounds(967, 546, 300, 23);
          startPage.add(FFTechLabel); 
     }
     
@@ -108,15 +123,16 @@ public class UIController extends JFrame {
     public void createMenuPage(OrderController OC)
     {
     	 menuPage = new JPanel();
+    	 menuPage.setBackground(new Color(255, 255, 255));
          menuPage.setBorder(new EmptyBorder(5, 5, 5, 5));
 
          setContentPane( menuPage);
          menuPage.setLayout(null);
          
-
-         JPanel panel = new JPanel();
-         panel.setBounds(167, 92, 500, 89);
-         menuPage.add(panel);
+         JLabel fftechLogo = new JLabel();
+    	 fftechLogo.setIcon(new ImageIcon("src\\fftech_logo.png"));
+         fftechLogo.setBounds(10, -247, 1000, 1000);
+         menuPage.add(fftechLogo); 
 
          db = new DBController();
          Vector<MenuItem> items = db.getMenuItems();
@@ -125,6 +141,8 @@ public class UIController extends JFrame {
          
          //checkout button
          JButton checkOutButton = new JButton("Check Out");
+         checkOutButton.setForeground(new Color(255, 255, 255));
+         checkOutButton.setBackground(new Color(0, 0, 128));
          
          checkOutButton.addActionListener(new ActionListener() {
              public void actionPerformed(ActionEvent e) {
@@ -132,7 +150,7 @@ public class UIController extends JFrame {
                  createCheckoutPage(order);
              }
          });
-         checkOutButton.setBounds(940, 250, 174, 23);
+         checkOutButton.setBounds(859, 538, 174, 23);
          menuPage.add(checkOutButton); 
          
          
@@ -143,7 +161,7 @@ public class UIController extends JFrame {
  	    JScrollPane scrollSumPane = new JScrollPane(sumGrid);
  	    scrollSumPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
  	    scrollSumPane.setLocation(750, 11);   
- 	    scrollSumPane.setSize(520, 200);
+ 	    scrollSumPane.setSize(520, 436);
  	    
  	    menuPage.add(scrollSumPane, BorderLayout.CENTER);
  	    
@@ -169,13 +187,15 @@ public class UIController extends JFrame {
  	    }
  	  
  	    JScrollPane scrollMenuPane = new JScrollPane(menuGrid);
- 	    scrollMenuPane.setLocation(331, 238);   
- 	    scrollMenuPane.setSize(310, 200);
+ 	    scrollMenuPane.setLocation(267, 48);   
+ 	    scrollMenuPane.setSize(392, 426);
  	    
  	    menuPage.add(scrollMenuPane, BorderLayout.CENTER); 
  	    
  	   //cancel button 
  	   JButton cancelButton = new JButton("Cancel Order");
+ 	   cancelButton.setForeground(new Color(255, 255, 255));
+ 	   cancelButton.setBackground(new Color(0, 0, 128));
        
        cancelButton.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent e) {
@@ -183,7 +203,7 @@ public class UIController extends JFrame {
         	   createStartPage();
            }
        });
-       cancelButton.setBounds(940, 300, 174, 23);
+       cancelButton.setBounds(317, 538, 174, 23);
        menuPage.add(cancelButton); 
     }
     
