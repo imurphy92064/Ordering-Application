@@ -105,6 +105,7 @@ public class OrderInProgress extends Order {
             double curTotal = getTotal();
 
             curTotal += subTotal;
+            curTotal = Math.round(curTotal * 100.0) / 100.0; //solves java problem of displaying numbers slightly off, like 7.49999995 instead of 7.5
             setTotal(curTotal);
         }
         else{//If op is false we subtract
@@ -112,6 +113,7 @@ public class OrderInProgress extends Order {
             double curTotal = getTotal();
 
             curTotal -= subTotal;
+            curTotal = Math.round(curTotal * 100.0) / 100.0;
             setTotal(curTotal);
         }
     }

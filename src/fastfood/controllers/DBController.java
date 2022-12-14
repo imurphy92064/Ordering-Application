@@ -109,7 +109,7 @@ public class DBController {
         newReceipt - The receipt object that we use to insert into the DB.
     Returns: Returns a boolean dependent on if the method inserted successfully.
      */
-    public boolean insertReceipt(@NotNull OrderInProgress order) {
+    public boolean insertReceipt(OrderInProgress order) {
         boolean fullSuccess = false;
         boolean receiptInsertSuccess = true;
         boolean receiptInfoInsertSuccess = true;
